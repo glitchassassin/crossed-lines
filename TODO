@@ -1,0 +1,61 @@
+Elements
+
+- Game board
+  - Nodes
+  - Lines
+
+
+GameBoard {
+	Nodes: array;
+	Lines: array;
+}
+
+- UI
+  - Modal dialog
+    - Content div
+    * Welcome popup
+    * Winning popup
+  - Menu
+    - Title/byline
+    - Difficulty slider
+      - With labels
+    - Buttons
+      * Restart button
+      * Resume button
+  - Clock
+    - Text
+
+
+Patterns
+
+- Publish/Subscribe
+
+## Game Objects ##
+
+Game(canvas)
+	- render() 
+	- pauseGame() 
+	- resumeGame() 
+	- restartGame() 
+	- setDifficulty() 
+	- Board
+		- clearCanvas()
+		- handler_down(evt) 
+		- handler_up(evt) 
+		- handler_move(evt) 
+		- handler_rescale(evt)
+	- Nodes
+		- generateNodes()
+		- shuffleNodes()
+		- Node(x, y)
+	- Lines
+		- Line(node1, node2)
+			- crosses(line)
+		- crossings()
+
+## UI ##
+
+Clock
+ - render()
+
+ 
