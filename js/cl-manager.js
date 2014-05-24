@@ -19,6 +19,8 @@ function GameManager(canvasElement, clockElement, menuElement)
 		clock.init();
 		menu.init();
 		setupMenuItems();
+		pauseGame();
+		menu.show();
 
 		render();
 	}
