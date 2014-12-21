@@ -261,13 +261,13 @@ body {
 	position: fixed;
 	width: 150;
 	height: 150;
-	top: -1;
+	top: 5;
 	right: 0;
 	cursor: pointer;
 }
 #menu {
 	position: fixed;
-	top: 0;
+	top: 5px;
 	right: 0;
 	cursor: default;
 	padding: 0px;
