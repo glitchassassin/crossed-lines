@@ -110,8 +110,9 @@ function Clock(canvas)
 		var milliseconds = Math.floor(elapsed/10) % 100;
 		var seconds = Math.floor(elapsed/1000) % 60;
 		var minutes = Math.floor(elapsed/60000) % 100;
-
-		return (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+        
+        // Timer caps out at 99 minutes.
+		return (minutes < 10 ? "0" : "") + Math.min(minutes, 99) + ":" + (seconds < 10 ? "0" : "") + seconds;
 	};
 
 	// Private functions

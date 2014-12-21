@@ -17,14 +17,16 @@ function Menu(menuElement)
 	{
 		$(domElement).hide();
 		$(menuElement).parent().prepend(matte);
+		/*
 		$.get(
-			"img/ui.svg", 
-			function(data) 
+			"img/ui.svg",
+			function(data)
 			{
 				outline = data.documentElement;
 				$(menuElement).prepend($(outline).show());
 			}
 		);
+		*/
 	};
 
 	this.show = function(callback)
@@ -32,7 +34,8 @@ function Menu(menuElement)
 		matte.show();
 		if (!that.visible)
 		{
-			$(domElement).show("pulsate", 300);
+			//$(domElement).show("pulsate", 300);
+			$(domElement).show();
 			//$(outline).stop().show("pulsate", 300);
 			that.visible = true;
 			if (typeof callback == "function") {callback()};

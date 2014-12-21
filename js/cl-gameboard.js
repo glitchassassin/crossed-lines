@@ -34,10 +34,6 @@ function GameBoard(canvas, exclude)
 	// Privileged methods
 	this.init = function()
 	{
-		// Set up data objects
-		this.nodes = new Nodes(this.exclude);
-		this.lines = new Lines();
-
 		// Set up event handlers
 		$(this.canvas).on("mousedown", canvas_click);
 		$(this.canvas).on("touchstart", canvas_click);
@@ -47,7 +43,12 @@ function GameBoard(canvas, exclude)
 		$(this.canvas).on("touchmove", canvas_move);
 		$(window).on("resize", window_rescale);
 		$(window).on("orientationchange", window_rescale);
-		// Initialize data objects
+		
+		// Setting up data objects...
+		this.nodes = new Nodes(this.exclude);
+		this.lines = new Lines();
+		
+        // ...and initializing the data objects.
 		window_rescale();
 		this.reset();
 	};
@@ -56,7 +57,7 @@ function GameBoard(canvas, exclude)
 	{
 		// Clear the canvas;
 		var context = this.canvas.getContext("2d");
-		context.clearRect(0, 0, canvas.width, canvas.height);
+		context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
 		// Draw lines and nodes
 		this.lines.draw(this.canvas);
@@ -103,344 +104,6 @@ function GameBoard(canvas, exclude)
 		this.reset();
 	};
 
-	// Private methods
-	function Nodes(exclude) 
-	{
-		// Public properties
-		this.nodes = [];
-
-		// The exclude defines where nodes are not allowed to be.
-		// We pass it a node (with x and y coordinates), and if the node is
-		// in a Bad Place, it returns true (otherwise false). This is a
-		// default function in case a custom one isn't defined. It always
-		// returns true.
-		
-		if (typeof exclude != "function")
-		{
-			exclude = function() 
-			{
-				return false;
-			};
-		}
-		
-
-		// Privileged methods
-		this.generate = function(n) 
-		{
-			this.nodes = [];
-			for (var i = 0; i < n; i++)
-			{
-				// Generate array of nodes
-				this.nodes.push(new Node(0,0));
-			}
-		};
-
-		this.shuffle = function(canvas)
-		{
-			// Generate random coordinates for each node (based on the local canvas space)
-			var margin = Math.min(100, Math.min(canvas.height*0.1, canvas.width*0.1));
-			var d_min_x = margin;
-			var d_min_y = margin;
-			var d_max_x = canvas.width-margin;
-			var d_max_y = canvas.height-margin;
-
-			for (var i = 0; i < this.nodes.length; i++) 
-			{
-				// Generate random coordinates (repeat if node is in a Bad Place)
-				do 
-				{
-					this.nodes[i].x = Math.floor(Math.random()*(d_max_x-d_min_x+1)+d_min_x);
-					this.nodes[i].y = Math.floor(Math.random()*(d_max_y-d_min_y+1)+d_min_y);
-				} while (exclude(this.nodes[i]));
-			}
-		};
-
-		this.draw = function(canvas) 
-		{
-			for (var i = 0; i < this.nodes.length; i++)
-			{
-				this.nodes[i].draw(canvas);
-			}
-		};
-
-		this.rescale = function(dx, dy)
-		{
-			// Adjusts location of all nodes based on a constant factor
-			// Used for resizing the canvas
-			for (var i = 0; i < this.nodes.length; i++)
-			{
-				this.nodes[i].x *= dx;
-				this.nodes[i].y *= dy;
-			}
-		};
-
-		this.findNode = function(x, y)
-		{
-			// We actually sort backward through the list, since the later nodes are rendered
-			// on top - so when you click on overlapping nodes, you get the uppermost one.
-			for (var i = this.nodes.length-1; i >= 0; i--)
-			{
-				// Get offset from the node;
-				var dx = x - this.nodes[i].x;
-				var dy = y - this.nodes[i].y;
-				// ...and check if clicking within node's radius:
-				if (Math.sqrt((dx*dx)+(dy*dy)) < this.nodes[i].r) { // Pythagorean theorem - a^2 + b^2 = c^2
-					// We have a node!
-					return this.nodes[i];
-				}
-			}
-			// No nodes found
-			return false;
-		};
-
-		// Private methods
-		function Node(x, y, r) 
-		{
-			// Public properties
-			this.x = (typeof x === "undefined") ? 0 : x;
-			this.y = (typeof y === "undefined") ? 0 : y;
-			this.r = (typeof r === "undefined") ? 22 : r;
-
-			// Private variables
-			var that = this;
-
-			// Privileged methods
-			this.draw = function(canvas) 
-			{
-				var context = canvas.getContext("2d");
-				context.globalCompositeOperation = "source-over";
-
-				var grd = context.createRadialGradient(that.x, that.y, 0.000, that.x, that.y, that.r);
-
-				// Add colors
-				grd.addColorStop(0.175, 'rgba(255, 255, 255, 1.000)');
-				grd.addColorStop(0.571, 'rgba(0, 255, 255, 1.000)');
-        		grd.addColorStop(0.994, 'rgba(0, 255, 255, 0.000)');
-
-				// Circle Code
-				var startPoint = (Math.PI/180)*0;
-				var endPoint = (Math.PI/180)*360;
-				context.beginPath();
-				context.arc(that.x, that.y, that.r, startPoint, endPoint, true);
-
-				// Fill with gradient
-				context.fillStyle = grd;
-				context.fill();
-				context.closePath();
-			};
-			// Wrap up and deliver:
-			return this;
-		}
-	
-		// Wrap up and deliver:
-		return this;
-	}
-
-	function Lines() 
-	{
-		// Public properties
-		this.lines = [];
-		this.crossings = 0;
-
-		// Privileged methods
-		this.generate = function(nodesObj, min_connections, max_connections, color) 
-		{
-			// This function connects nodes randomly, but in such a way that the lines aren't crossed.
-			// An imaginary grid is constructed, and the nodes are laid out sequentially:
-			//
-			//  01---02---03---04  // Each node is connected horizontally within its row
-			//  |  \ |  /    \  |                                                       
-			//  05---06---07---08  // Odd nodes are allowed to connect diagonally with
-			//     \ |     |             either even number below and to the right or left
-			//  09---10---11---12
-			//  |    |       \  |  // Any node is allowed to connect to the node directly below
-			//  13---14---15---16 
-			//     \ |  /  |    |  // Once the nodes are shuffled, all resemblance to a grid disappears.
-			//  17---18---19---20
-
-			// Calculate the grid width
-			var nodes = nodesObj.nodes;
-			var square = Math.floor(Math.sqrt(nodes.length));
-			var lines = [];
-
-			for (var index = 0; index < nodes.length; index++)
-			{
-				// Each node starts out with zero outgoing connections.
-				var connections = 1;
-
-				// Add a default horizontal connection, if the node isn't at the end of a line
-				if ((index+1) % square > 0 && index+1 < nodes.length) 
-				{
-					lines.push(new Line(nodes[index], nodes[index+1], color)); 
-				}
-				
-				// Now loop, adding random connections (if necessary) until we have at least 
-				// min_connections from this node. (Note that some of these lines may be duplicates;
-				// we'll eliminate these below.)
-				do 
-				{
-					// Odd nodes are eligible to make a diagonal connection, either left or right.
-					if (index % 2 !== 0 && Math.random() > 0.3 && connections < max_connections) 
-					{
-						connections++;
-						var diagonal_target = index + square + (Math.random > 0.5 ? 1 : -1);
-						if (diagonal_target < nodes.length) 
-						{
-							lines.push(new Line(nodes[index], nodes[diagonal_target], color));
-						}
-					}
-
-					// Any node is eligible to make a vertical connection.
-					if (Math.random() > 0.3 && connections < max_connections) 
-					{
-						connections++;
-						var vertical_target = index + square;
-						if (vertical_target < nodes.length) {
-							lines.push(new Line(nodes[index], nodes[vertical_target], color));
-						}
-					}
-				} while (connections <= min_connections);
-			}
-
-			// Create a new duplicate-free list, and parse the list for duplicates:
-			var uniqueLines = [];
-			for (var i = 0; i < lines.length; i++)
-			{
-				var duplicate = false;
-				for (var j = 0; j < uniqueLines.length; j++)
-				{
-					if (uniqueLines[j].equals(lines[i])) 
-					{
-						duplicate = true;
-						break;
-					}
-				}
-				if (!duplicate) 
-				{
-					uniqueLines.push(lines[i]);
-				}
-			}
-			this.lines = uniqueLines;
-		};
-
-		this.draw = function(canvas)
-		{
-			// Render each of the lines.
-			for (var i = 0; i < this.lines.length; i++)
-			{
-				this.lines[i].draw(canvas);
-			}
-		};
-
-		this.checkCrossings = function()
-		{
-			// TODO: Optimize this function.
-			var exclude = [];
-			this.crossings = 0;
-
-			for (var i = 0; i < this.lines.length; i++)
-			{
-				if (exclude.indexOf(i) == -1) {  // This one has not intersected yet.
-					this.lines[i].crossed = false; 
-				}
-
-				for (var j = i+1; j < this.lines.length; j++) // Loop through all remaining lines and see if any intersect
-				{
-					if (this.lines[i].crosses(this.lines[j])) {
-						// The lines intersect.
-						this.lines[i].crossed = true;
-						this.lines[j].crossed = true;
-						exclude.push(j);
-						this.crossings++;
-					}
-				}
-			}
-			return this.crossings;
-		};
-
-		// Private methods
-		function Line(node1, node2, color)
-		{
-			// Basic input validation - if the nodes are empty, we can't very well make a line.
-			if (node1 === undefined || node2 === undefined) { throw new Error("Invalid node"); }
-			
-			// Private variables
-
-			var that = this;
-			var defaultColor = { // Default color scheme
-				base: "rgba(0, 255, 255, 1.000)",
-				baseCore: "rgba(255, 255, 255, 1.000)",
-				crossed: "rgba(128, 0, 0, 1.000)",
-				crossedCore: "rgba(128, 128, 128, 1.000)"
-			};
-
-			// Public properties
-			this.n1 = node1;
-			this.n2 = node2;
-			this.color = (typeof color === "undefined") ? defaultColor : color;
-			this.crossed = false;
-
-
-			// Privileged methods
-
-			this.draw = function(canvas) 
-			{
-				// Draws the line on the given canvas.
-				var x1 = that.n1.x;
-				var y1 = that.n1.y;
-				var x2 = that.n2.x;
-				var y2 = that.n2.y;
-
-				var context = canvas.getContext("2d");
-
-				context.globalCompositeOperation = "lighter";
-				
-				context.beginPath();
-				context.moveTo(x1, y1);
-				context.lineTo(x2, y2);
-				context.strokeStyle = this.crossed ? this.color.crossed : this.color.base;
-				context.lineWidth = 7;
-				context.stroke();
-
-				context.beginPath();
-				context.moveTo(x1, y1);
-				context.lineTo(x2, y2);
-				context.strokeStyle = this.crossed ? this.color.crossedCore : this.color.baseCore;
-				context.lineWidth = 3;
-				context.stroke();
-			};
-
-			this.equals = function(line) 
-			{
-				// Checks if two lines have the same nodes.
-				return ((line.n1 == this.n1 && line.n2 == this.n2) ||
-								(line.n1 == this.n2 && line.n2 == this.n1));
-			};
-
-			this.crosses = function(line) 
-			{
-				// Calculate cross products for the first line.
-				// Details on the math: http://stackoverflow.com/questions/7069420/check-if-two-line-segments-are-colliding-only-check-if-they-are-intersecting-n
-				var xp1 = (this.n1.x - this.n2.x) * (line.n1.y - this.n1.y) - (this.n1.y - this.n2.y) * (line.n1.x - this.n1.x);
-				var xp2 = (this.n1.x - this.n2.x) * (line.n2.y - this.n1.y) - (this.n1.y - this.n2.y) * (line.n2.x - this.n1.x);
-
-				// ...and the second line:
-				var xp3 = (line.n1.x - line.n2.x) * (this.n1.y - line.n1.y) - (line.n1.y - line.n2.y) * (this.n1.x - line.n1.x);
-				var xp4 = (line.n1.x - line.n2.x) * (this.n2.y - line.n1.y) - (line.n1.y - line.n2.y) * (this.n2.x - line.n1.x);
-
-				if (xp1 * xp2 < 0 && xp3 * xp4 < 0) 
-				{
-					// The lines intersect.
-					return true;
-				}
-				return false;
-			};
-		}
-	
-		// Wrap up and deliver:
-		return this;
-	}
-
 	// Canvas click handlers
 	function canvas_click(evt)
 	{
@@ -485,15 +148,36 @@ function GameBoard(canvas, exclude)
 		if (moving.length > 0 && !that.paused && !that.won) {
 			for (var i = 0; i < moving.length; i++)
 			{
+			    var movedNode = {};
+			    var oldNode = {x: moving[i].x, y: moving[i].y};
 				if (evt.type == "touchmove") 
 				{
-					moving[i].x = evt.originalEvent.touches[i].pageX;
-					moving[i].y = evt.originalEvent.touches[i].pageY;
+					movedNode = {
+    			        x: Math.max(Math.min(evt.originalEvent.touches[i].pageX, window.innerWidth), 0),
+    			        y: Math.max(Math.min(evt.originalEvent.touches[i].pageY, window.innerHeight), 0)
+    			    };
 				}
 				else 
 				{
-					moving[i].x = evt.pageX;
-					moving[i].y = evt.pageY;
+					movedNode = {
+    			        x: Math.max(Math.min(evt.pageX, window.innerWidth), 0),
+    			        y: Math.max(Math.min(evt.pageY, window.innerHeight), 0)
+    			    };
+				}
+				
+		        if (!exclude({x: movedNode.x, y: moving[i].y}))
+		        {
+		            moving[i].x = movedNode.x;
+		        }
+		        if (!exclude({x: moving[i].x, y: movedNode.y}))
+		        {
+		            moving[i].y = movedNode.y;
+		        }
+				if (!exclude(movedNode))
+				{
+				    // Calculate physics variables for moved node
+				    moving[i].speed = Math.sqrt(Math.pow((oldNode.x - movedNode.x), 2) + Math.pow((oldNode.y - movedNode.y), 2));
+				    moving[i].angle = Math.atan2((movedNode.y - oldNode.y), (movedNode.x - oldNode.x));
 				}
 			}
 		}
@@ -514,4 +198,402 @@ function GameBoard(canvas, exclude)
 
 		that.nodes.rescale(new_x/old_x, new_y/old_y);
 	}
+    
+    // Private functions - entity classes
+    function Nodes(exclude) 
+    {
+    	// Public properties
+    	this.nodes = [];
+    
+    	// The exclude defines where nodes are not allowed to be.
+    	// We pass it a node (with x and y coordinates), and if the node is
+    	// in a Bad Place, it returns true (otherwise false). This is a
+    	// default function in case a custom one isn't defined. It always
+    	// returns false.
+    	
+    	if (typeof exclude != "function")
+    	{
+    		exclude = function() 
+    		{
+    			return false;
+    		};
+    	}
+    	
+    	
+    	
+    
+    	// Privileged methods
+    	this.generate = function(n) 
+    	{
+    		this.nodes = [];
+    		for (var i = 0; i < n; i++)
+    		{
+    			// Generate array of nodes
+    			this.nodes.push(new Node(0,0));
+    		}
+    	};
+    
+    	this.shuffle = function(canvas)
+    	{
+    		// Generate random coordinates for each node (based on the local canvas space)
+    		var margin = Math.min(100, Math.min(canvas.height*0.1, canvas.width*0.1));
+    		var d_min_x = margin;
+    		var d_min_y = margin;
+    		var d_max_x = canvas.width-margin;
+    		var d_max_y = canvas.height-margin;
+    
+    		for (var i = 0; i < this.nodes.length; i++) 
+    		{
+    			// Generate random coordinates (repeat if node is in a Bad Place)
+    			do 
+    			{
+    				this.nodes[i].x = Math.floor(Math.random()*(d_max_x-d_min_x+1)+d_min_x);
+    				this.nodes[i].y = Math.floor(Math.random()*(d_max_y-d_min_y+1)+d_min_y);
+        		    var go = false;
+        		    // Make sure nodes are not in an exclusion zone
+        		    if (exclude(this.nodes[i]))
+        		    { 
+        		    	go = true;
+        		    }
+        		    
+        		    for (var j = 0; j < this.nodes.length; j++)
+        		    {
+        		        if ((Math.abs(this.nodes[i].x - this.nodes[j].x) < this.nodes[i].r
+        		          && Math.abs(this.nodes[i].y - this.nodes[j].y) < this.nodes[i].r
+        		          && i != j)) // Make sure node doesn't overlap...
+        		        {
+        		            console.log("Collision detected");
+        		            console.log("Node i: ", this.nodes[i]);
+        		            console.log("Node j: ", this.nodes[j]);
+        		            go = true;
+        		        }
+        		    }
+    			} while (go);
+    		}
+    	};
+    
+    	this.draw = function(canvas) 
+    	{
+    		for (var i = 0; i < this.nodes.length; i++)
+    		{
+    			this.nodes[i].draw(canvas);
+    		}
+    	};
+    
+    	this.rescale = function(dx, dy)
+    	{
+    		// Adjusts location of all nodes based on a constant factor
+    		// Used for resizing the canvas
+    		for (var i = 0; i < this.nodes.length; i++)
+    		{
+    			this.nodes[i].x *= dx;
+    			this.nodes[i].y *= dy;
+    		}
+    	};
+    
+    	this.findNode = function(x, y)
+    	{
+    		// We actually sort backward through the list, since the later nodes are rendered
+    		// on top - so when you click on overlapping nodes, you get the uppermost one.
+    		for (var i = this.nodes.length-1; i >= 0; i--)
+    		{
+    			// Get offset from the node;
+    			var dx = x - this.nodes[i].x;
+    			var dy = y - this.nodes[i].y;
+    			// ...and check if clicking within node's radius:
+    			if (Math.sqrt((dx*dx)+(dy*dy)) < this.nodes[i].r) { // Pythagorean theorem - a^2 + b^2 = c^2
+    				// We have a node!
+    				return this.nodes[i];
+    			}
+    		}
+    		// No nodes found
+    		return false;
+    	};
+    
+    	// Private methods
+    	function Node(x, y, r) 
+    	{
+    		// Public properties
+    		this.x = (typeof x === "undefined") ? 0 : x;
+    		this.y = (typeof y === "undefined") ? 0 : y;
+    		this.r = (typeof r === "undefined") ? 20 : r;
+    		this.shade = 0.800;
+    		this.speed = 0;
+    		this.angle = 0;
+    
+    		// Private variables
+    		var that = this;
+    
+    		// Privileged methods
+    		this.draw = function(canvas) 
+    		{
+    			var context = canvas.getContext("2d");
+    			context.globalCompositeOperation = "source-over";
+    			
+    			// Spiffy node animation (for pizazz)
+    			// This section changes the size of the node when selected and released...
+    			if (moving.indexOf(that) > -1)
+    			{
+    			    that.shade = Math.min(that.shade + 0.050, 0.800);
+    			    that.r = Math.min(that.r + 1, 25);
+    			}
+    			else
+    			{
+    			    that.shade = Math.max(that.shade - 0.010, 0.700);
+    			    that.r = Math.max(that.r - 0.5, 20);
+    			    
+    			    // ...and this one animates the drift when it's released.
+    			    if (that.speed > 0.01)
+    			    {
+    			        var newCoords = {
+    			            x: Math.max(Math.min(that.x + (that.speed * Math.cos(that.angle)), window.innerWidth), 0),
+    			            y: Math.max(Math.min(that.y + (that.speed * Math.sin(that.angle)), window.innerHeight), 0)
+    			        };
+    			        if (!exclude({x: newCoords.x, y: that.y}))
+    			        {
+    			            that.x = newCoords.x;
+    			        }
+    			        if (!exclude({x: that.x, y: newCoords.y}))
+    			        {
+    			            that.y = newCoords.y;
+    			        }
+    			        that.speed = that.speed / 1.2;
+    			    }
+    			}
+    
+    			// Add colors
+    			var grd = context.createRadialGradient(that.x, that.y, 0.000, that.x, that.y, that.r);
+    			
+    			grd.addColorStop(0.000, 'rgba(0, 0, 0, 1.000)');
+    			grd.addColorStop(0.500, 'rgba(0, 0, 0, 1.000)');
+    			grd.addColorStop(0.505, 'rgba(0, 196, 196, 1.000)');
+    			grd.addColorStop(0.600, 'rgba(0, 196, 196, 1.000)');
+    			grd.addColorStop(0.605, 'rgba(0, 128, 128, 0.700)');
+    			grd.addColorStop(this.shade, 'rgba(0, 128, 128, 0.500)');
+        		grd.addColorStop(0.994, 'rgba(0, 128, 128, 0.000)');
+    
+    			// Circle Code
+    			var startPoint = (Math.PI/180)*0;
+    			var endPoint = (Math.PI/180)*360;
+    			context.beginPath();
+    			context.arc(that.x, that.y, that.r, startPoint, endPoint, true);
+    
+    			// Fill with gradient
+    			context.fillStyle = grd;
+    			context.fill();
+    			context.closePath();
+    		};
+    		// Wrap up and deliver:
+    		return this;
+    	}
+    
+    	// Wrap up and deliver:
+    	return this;
+    }
+    
+    function Lines() 
+    {
+    	// Public properties
+    	this.lines = [];
+    	this.crossings = 0;
+    
+    	// Privileged methods
+    	this.generate = function(nodesObj, min_connections, max_connections, color) 
+    	{
+    		// This function connects nodes randomly, but in such a way that the lines aren't crossed.
+    		// An imaginary grid is constructed, and the nodes are laid out sequentially:
+    		//
+    		//  01---02---03---04  // Each node is connected horizontally within its row
+    		//  |  \ |  /    \  |                                                       
+    		//  05---06---07---08  // Odd nodes are allowed to connect diagonally with
+    		//     \ |     |             either even number below and to the right or left
+    		//  09---10---11---12
+    		//  |    |       \  |  // Any node is allowed to connect to the node directly below
+    		//  13---14---15---16 
+    		//     \ |  /  |    |  // Once the nodes are shuffled, all resemblance to a grid disappears.
+    		//  17---18---19---20
+    
+    		// Calculate the grid width
+    		var nodes = nodesObj.nodes;
+    		var square = Math.floor(Math.sqrt(nodes.length));
+    		var lines = [];
+    
+    		for (var index = 0; index < nodes.length; index++)
+    		{
+    			// Each node starts out with zero outgoing connections.
+    			var connections = 1;
+    
+    			// Add a default horizontal connection, if the node isn't at the end of a line
+    			if ((index+1) % square > 0 && index+1 < nodes.length) 
+    			{
+    				lines.push(new Line(nodes[index], nodes[index+1], color)); 
+    			}
+    			
+    			// Now loop, adding random connections (if necessary) until we have at least 
+    			// min_connections from this node. (Note that some of these lines may be duplicates;
+    			// we'll eliminate these below.)
+    			do 
+    			{
+    				// Odd nodes are eligible to make a diagonal connection, either left or right.
+    				if (index % 2 !== 0 && Math.random() > 0.3 && connections < max_connections) 
+    				{
+    					connections++;
+    					var diagonal_target = index + square + (Math.random > 0.5 ? 1 : -1);
+    					if (diagonal_target < nodes.length) 
+    					{
+    						lines.push(new Line(nodes[index], nodes[diagonal_target], color));
+    					}
+    				}
+    
+    				// Any node is eligible to make a vertical connection.
+    				if (Math.random() > 0.3 && connections < max_connections) 
+    				{
+    					connections++;
+    					var vertical_target = index + square;
+    					if (vertical_target < nodes.length) {
+    						lines.push(new Line(nodes[index], nodes[vertical_target], color));
+    					}
+    				}
+    			} while (connections <= min_connections);
+    		}
+    
+    		// Create a new duplicate-free list, and parse the list for duplicates:
+    		var uniqueLines = [];
+    		for (var i = 0; i < lines.length; i++)
+    		{
+    			var duplicate = false;
+    			for (var j = 0; j < uniqueLines.length; j++)
+    			{
+    				if (uniqueLines[j].equals(lines[i])) 
+    				{
+    					duplicate = true;
+    					break;
+    				}
+    			}
+    			if (!duplicate) 
+    			{
+    				uniqueLines.push(lines[i]);
+    			}
+    		}
+    		this.lines = uniqueLines;
+    	};
+    
+    	this.draw = function(canvas)
+    	{
+    		// Render each of the lines.
+    		
+    		for (var i = 0; i < this.lines.length; i++)
+    		{
+    			this.lines[i].draw(canvas);
+    		}
+    	};
+    
+    	this.checkCrossings = function()
+    	{
+    		// TODO: Optimize this function.
+    		var exclude = [];
+    		this.crossings = 0;
+    
+    		for (var i = 0; i < this.lines.length; i++)
+    		{
+    			if (exclude.indexOf(i) == -1) {  // This one has not intersected yet.
+    				this.lines[i].crossed = false; 
+    			}
+    
+    			for (var j = i+1; j < this.lines.length; j++) // Loop through all remaining lines and see if any intersect
+    			{
+    				if (this.lines[i].crosses(this.lines[j])) {
+    					// The lines intersect.
+    					this.lines[i].crossed = true;
+    					this.lines[j].crossed = true;
+    					exclude.push(j);
+    					this.crossings++;
+    				}
+    			}
+    		}
+    		return this.crossings;
+    	};
+    
+    	// Private methods
+    	function Line(node1, node2, color)
+    	{
+    		// Basic input validation - if the nodes are empty, we can't very well make a line.
+    		if (node1 === undefined || node2 === undefined) { throw new Error("Invalid node"); }
+    		
+    		// Private variables
+    
+    		var that = this;
+    		var defaultColor = { // Default color scheme
+    			base: "rgba(0, 128, 128, 1.000)",
+    			baseCore: "rgba(0, 255, 255, 1.000)",
+    			crossed: "rgba(128, 0, 0, 1.000)",
+    			crossedCore: "rgba(128, 128, 128, 1.000)"
+    		};
+    
+    		// Public properties
+    		this.n1 = node1;
+    		this.n2 = node2;
+    		this.color = (typeof color === "undefined") ? defaultColor : color;
+    		this.crossed = false;
+    
+    
+    		// Privileged methods
+    
+    		this.draw = function(canvas) 
+    		{
+    			// Draws the line on the given canvas.
+    			var x1 = that.n1.x;
+    			var y1 = that.n1.y;
+    			var x2 = that.n2.x;
+    			var y2 = that.n2.y;
+    
+    			var context = canvas.getContext("2d");
+    
+    			context.globalCompositeOperation = "lighter";
+    			
+    			context.beginPath();
+    			context.moveTo(x1, y1);
+    			context.lineTo(x2, y2);
+    			context.strokeStyle = this.crossed ? this.color.crossed : this.color.base;
+    			context.lineWidth = 4;
+    			context.stroke();
+    
+    			context.beginPath();
+    			context.moveTo(x1, y1);
+    			context.lineTo(x2, y2);
+    			context.strokeStyle = this.crossed ? this.color.crossedCore : this.color.baseCore;
+    			context.lineWidth = 2;
+    			context.stroke();
+    		};
+    
+    		this.equals = function(line) 
+    		{
+    			// Checks if two lines have the same nodes.
+    			return ((line.n1 == this.n1 && line.n2 == this.n2) ||
+    							(line.n1 == this.n2 && line.n2 == this.n1));
+    		};
+    
+    		this.crosses = function(line) 
+    		{
+    			// Calculate cross products for the first line.
+    			// Details on the math: http://stackoverflow.com/questions/7069420/check-if-two-line-segments-are-colliding-only-check-if-they-are-intersecting-n
+    			var xp1 = (this.n1.x - this.n2.x) * (line.n1.y - this.n1.y) - (this.n1.y - this.n2.y) * (line.n1.x - this.n1.x);
+    			var xp2 = (this.n1.x - this.n2.x) * (line.n2.y - this.n1.y) - (this.n1.y - this.n2.y) * (line.n2.x - this.n1.x);
+    
+    			// ...and the second line:
+    			var xp3 = (line.n1.x - line.n2.x) * (this.n1.y - line.n1.y) - (line.n1.y - line.n2.y) * (this.n1.x - line.n1.x);
+    			var xp4 = (line.n1.x - line.n2.x) * (this.n2.y - line.n1.y) - (line.n1.y - line.n2.y) * (this.n2.x - line.n1.x);
+    
+    			if (xp1 * xp2 < 0 && xp3 * xp4 < 0) 
+    			{
+    				// The lines intersect.
+    				return true;
+    			}
+    			return false;
+    		};
+    	}
+    
+    	// Wrap up and deliver:
+    	return this;
+    }
 }

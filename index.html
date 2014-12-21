@@ -3,302 +3,15 @@
 		<title>Crossed Lines - Glitch Assassin Games</title>
 		<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 		<link href='css/dot-luv/jquery-ui-1.10.4.custom.min.css' rel='stylesheet' type='text/css'>
-		<style>
-			body {
-				margin: 0;
-				padding: 0;
-				font-family: 'Open Sans' sans-serif;
-				color: #fff;
-				background: url("img/dialog.svg") no-repeat -9999px -9999px;
-			}
-			#cl_canvas {
-				background: #000; /* Old browsers */
-				/*background: -moz-radial-gradient(center, ellipse cover,  #474747 0%, #1a1d1f 100%); /* FF3.6+ */
-				/*background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#474747), color-stop(100%,#1a1d1f)); /* Chrome,Safari4+ */
-				/*background: -webkit-radial-gradient(center, ellipse cover,  #474747 0%,#1a1d1f 100%); /* Chrome10+,Safari5.1+ */
-				/*background: -o-radial-gradient(center, ellipse cover,  #474747 0%,#1a1d1f 100%); /* Opera 12+ */
-				/*background: -ms-radial-gradient(center, ellipse cover,  #474747 0%,#1a1d1f 100%); /* IE10+ */
-				/*background: radial-gradient(ellipse at center,  #474747 0%,#1a1d1f 100%); /* W3C */
-				/*filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#474747', endColorstr='#1a1d1f',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
-				margin: 0 auto;
-			}
-
-
-
-			#pausebutton {
-				border-left: 25px solid rgba(128,128,128,0.5);
-				border-right: 25px solid rgba(128,128,128,0.5);
-				position: absolute;
-				width: 25px;
-				height: 75px;
-				top: 40px;
-				right: 37px;
-			}
-			#playbutton {
-				display: none;
-				width: 130;
-				height: 130;
-				position: absolute;
-				top: 10px;
-				right: 10px;
-			}
-			#playarrow {
-				border-top: 50px solid transparent;
-				border-bottom: 50px solid transparent;
-				border-left: 70px solid rgba(128,128,128,0.5);
-				position: absolute;
-				width: 0;
-				height: 0px;
-				top: 15px;
-				right: 20px;
-			}
-			#title {
-				position: absolute;
-				top: 40;
-				left: 0;
-				color: #fff;
-				font-size: 100px;
-				line-height: 150px;
-				width: 900px;
-				text-align: center;
-				top: 35;
-				text-shadow: 0px 0px 15px rgba(0, 255, 255, 1);
-			}
-			#byline {
-				position: absolute;
-				color: #fff;
-				font-size: 30px;
-				line-height: 50px;
-				width: 100%;
-				text-align: center;
-				bottom: 50px;
-			}
-			#difficulty-slider {
-				position: relative;
-				float: right;
-				height: 280px;
-				font-size: 12pt;
-				margin-top: 22px;
-			}
-			#difficulty-label {
-				position: absolute;
-				color: #fff;
-				font-size: 50px;
-				line-height: 100px;
-				top: 180px;
-				left: 80px;
-				width: 330px;
-				font-family: 'Open Sans', sans-serif;
-			}
-			#difficulty-label .header {
-				font-size: 50px;
-				line-height: 100px;
-				display: block;
-				width: 100%;
-				display: none;
-			}
-			#difficulty-label .difficulty {
-				position: relative;
-				float: right;
-				font-size: 30px;
-				line-height: 40px;
-				display: block;
-				height: 47px;
-				width: 260px;
-				text-align: right;
-				text-shadow: 0px 0px 7px rgba(0, 255, 255, 1);
-			}
-
-			.logo {
-				font-family: 'Futura', sans-serif;
-				font-variant: small-caps;
-				text-shadow: 0px 0px 10px rgba(149, 110, 255, 1);
-			}
-
-			#won-svg {
-				position: absolute;
-				right: 0;
-			}
-			.won-play-svg {
-				stroke: rgba(0,200,0,1);
-				fill: rgba(0,255,0,0.3);
-			}
-			.won-play-svg:hover {
-				fill: rgba(0,255,0,0.4);
-			}
-
-
-			/* JQueryUI fix */
-
-			.ui-slider-vertical {
-				background: #f9f9f9; /* Old browsers */
-				background: -moz-linear-gradient(top, #f9f9f9 0%, #f9f9f9 50%, #eeefff 51%, #eeefff 100%); /* FF3.6+ */
-				background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f9f9f9), color-stop(50%,#f9f9f9), color-stop(51%,#eeefff), color-stop(100%,#eeefff)); /* Chrome,Safari4+ */
-				background: -webkit-linear-gradient(top, #f9f9f9 0%,#f9f9f9 50%,#eeefff 51%,#eeefff 100%); /* Chrome10+,Safari5.1+ */
-				background: -o-linear-gradient(top, #f9f9f9 0%,#f9f9f9 50%,#eeefff 51%,#eeefff 100%); /* Opera 11.10+ */
-				background: -ms-linear-gradient(top, #f9f9f9 0%,#f9f9f9 50%,#eeefff 51%,#eeefff 100%); /* IE10+ */
-				background: linear-gradient(to bottom, #f9f9f9 0%,#f9f9f9 50%,#eeefff 51%,#eeefff 100%); /* W3C */
-				filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f9f9f9', endColorstr='#eeefff',GradientType=0 ); /* IE6-9 */
-				box-shadow: 0px 0px 15px rgba(0, 255, 255, 1);
-			}
-			.ui-slider-handle.ui-state-default, .ui-slider-handle.ui-state-hover {
-				background: #fff;
-			}
-
-			/* New styles */
-
-			.modal-matte {
-				position: fixed;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 100%;
-				background-color: rgba(0,0,0,0.7);
-			}
-			.modal-dialog {
-				position: absolute;
-				width: 500px;
-				height: 300px;
-				/* border: 3px solid #fff; */ 
-				text-align: center;
-				font-size: 40px;
-				background-image: url("img/dialog.svg");
-			}
-			.won-difficulty {
-				position: absolute;
-				font-family: 'Open Sans', sans-serif;
-				font-size: 35px;
-				color: #fff;
-				top: 90px;
-				left: 30px;
-				line-height: 70px;
-			}
-			.won-difficulty-label {
-				position: absolute;
-				font-family: 'Open Sans', sans-serif;
-				font-size: 20px;
-				color: #fff;
-				top: 70px;
-				left: 30px;
-			}
-			.won-time {
-				position: absolute;
-				font-family: 'Open Sans', sans-serif;
-				font-size: 40px;
-				line-height: 70px;
-				color: #fff;
-				width: 130px;
-				top: 90px;
-				right: 30px;
-			}
-			.won-time-label {
-				position: absolute;
-				font-family: 'Open Sans', sans-serif;
-				font-size: 20px;
-				color: #fff;
-				top: 70px;
-				right: 30px;
-				width: 130px;
-			}
-			.modal-button {
-				position: absolute;
-				width: 295px;
-				height: 78px;
-				text-align: right;
-				bottom: 0px;
-				right: 0px;
-				/*
-				border: 3px solid rgba(0,200,0,1);
-				background-color: rgba(0,255,0,0.3);
-				*/
-				cursor: default;
-			}
-			.modal-button-label {
-				position: absolute;
-				width: 250px;
-				height: 78px;
-				font-size: 40px;
-				line-height: 78px;
-				right: 0px;
-				bottom: 0;
-			}
-			.menu-matte {
-				position: fixed;
-				width: 100%;
-				height: 100%;
-				background-color: rgba(0,0,0,0.7);
-				top: 0;
-				left: 0;
-			}
-			#clock {
-				position: fixed;
-				width: 150px;
-				height: 150px;
-				top: -1;
-				right: 0;
-				cursor: pointer;
-			}
-			#menu {
-				position: fixed;
-				top: 0;
-				right: 0;
-				cursor: default;
-				padding: 0px;
-				width: 1000px;
-				height: 620px;
-			}
-			#menu svg {
-				position: absolute;
-				top: 0;
-				right: 0;
-			}
-			#restartbutton {
-				position: absolute;
-				width: 270px;
-				font-size: 50px;
-				line-height: 75px;
-				text-align: center;
-				bottom: 280px;
-				right: 150px;
-				border: 3px solid rgba(0,0,200,1);
-				background-color: rgba(0,0,255,0.3);
-			}
-			#restartbutton:hover {
-				background-color: rgba(0,0,255,0.4);
-			}
-			#continuebutton {
-				position: absolute;
-				width: 270px;
-				font-size: 50px;
-				line-height: 75px;
-				text-align: center;
-				bottom: 150px;
-				right: 150px;
-				border: 3px solid rgba(0,200,0,1);
-				background-color: rgba(0,255,0,0.3);
-			}
-			#continuebutton:hover {
-				background-color: rgba(0,255,0,0.4);
-			}
-
-			#menuflag {
-				position: fixed;
-				right: 50px;
-				width: 50px;
-				color: white;
-				top: 90px;
-				font-style: italic;
-				cursor: default;
-			}
-
-		</style>
-		<meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+		<link href='css/styles.css' rel='stylesheet' type='text/css'>
+		<meta name="viewport" content="user-scalable=1.0,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,minimal-ui">
 		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="format-detection" content="telephone=no">
 		<script src="js/jquery-1.10.2.js"></script>
 		<script src="js/jquery-ui-1.10.4.custom.min.js"></script>
+		<script src="js/jquery-touch-punch-0.2.3.js"></script>
 		<script src="js/cl-gameboard.js"></script>
-		<script src="js/cl-clock.js?v=1"></script>
+		<script src="js/cl-clock.js"></script>
 		<script src="js/cl-modal.js"></script>
 		<script src="js/cl-manager.js"></script>
 		<script src="js/cl-menu.js"></script>
@@ -313,6 +26,17 @@
 				manager = new GameManager($("#cl_canvas")[0], $("#clock")[0], $("#menu")[0]);
 				manager.init();
 			});
+			
+			// On iOS 7, a grey bar appears at the bottom of the screen when rotating
+			// into landscape. It seems to be a known bug with iOS 7 - this is a hack
+			// to fix it.
+			var buggyIOS = /\b(?:iPhone|iPod|iPad).*?\bOS 7_[01]/.test(window.navigator.userAgent);
+			if (buggyIOS)
+			{
+			    $(window).on('orientationchange', function () {
+                  window.scrollTo(0, 0);
+                });
+			}
 
 		</script>
 	</head>
@@ -335,7 +59,7 @@
 					<span class="difficulty" onclick="$('#difficulty-slider').slider('value',0);">Child's Play -</span>
 				</div>
 				<div id="restartbutton">New Game</div>
-				<div id="continuebutton">Play</div>
+				<div id="continuebutton">Continue</div>
 			</div>
 			<canvas id="clock" width="150" height="150"></canvas>
 		</div>

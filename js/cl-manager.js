@@ -3,7 +3,13 @@ function GameManager(canvasElement, clockElement, menuElement)
 	var gameBoard = new GameBoard(canvasElement, function(node)
 	{
 		// Exclusion function (for the clock widget)
-		if (node.x > (window.innerWidth - 150) && node.y < 150)
+		var clockWidth = 150;
+		if (window.innerWidth < 1000)
+		{
+		    clockWidth = 100;
+		}
+		
+		if (node.x > (window.innerWidth - clockWidth) && node.y < clockWidth)
 		{
 			return true;
 		}
@@ -59,7 +65,7 @@ function GameManager(canvasElement, clockElement, menuElement)
 			min: 0,
 			animate: "fast",
 			value: 1,
-			change: function(evt, ui) { gameBoard.setDifficulty(ui.value); }
+			change: function(evt, ui) { gameBoard.setDifficulty(ui.value); clock.restart(); clock.pause(); }
 		});
 
 		$("#restartbutton").click(function() {
@@ -75,9 +81,45 @@ function GameManager(canvasElement, clockElement, menuElement)
 		clock.pause();
 		var difficulty = gameBoard.difficulty;
 		var time = clock.toString();
+		var highScores = null;
+		var newHighScore = false;
+		
+		
+		if (supportsLocalStorage())
+		{
+		    // Load high scores
+		    if (typeof localStorage["cl-highscores"] !== 'undefined')
+		    {
+		        highScores = JSON.parse(localStorage["cl-highscores"]);
+		    }
+		    else
+		    {
+		        highScores = [];
+		        console.log(gameBoard);
+		        for (var i = 0; i < gameBoard.difficulties.length; i++)
+		        {
+		            highScores[gameBoard.difficulties[i].value] = "99:99";
+		        }
+		    }
+		    
+		    
+		    // Update high scores if necessary
+    		if (highScores[difficulty.value] > time)
+    		{
+    		    newHighScore = true;
+    		    highScores[difficulty.value] = time;
+    		}
+    		
+    		// Save high scores
+    		localStorage["cl-highscores"] = JSON.stringify(highScores);
+		}
+		
+		
+		
 
 		var message = $("<div></div>")
-					.text("Good job!")
+					.append($("<div></div>", 
+						{class: "modal-title", text: "Puzzle Solved"}))	
 					.append($("<div></div>", 
 						{class: "won-difficulty-label", text: "Difficulty:"}))	
 					.append($("<div></div>", 
@@ -86,6 +128,21 @@ function GameManager(canvasElement, clockElement, menuElement)
 						{class: "won-time-label", text: "Time:"}))
 					.append($("<div></div>", 
 						{class: "won-time", text: time}));
+						
+		if (newHighScore)
+		{
+			message.append($("<div></div>", 
+						{class: "high-score", text: "New High Score!"}))
+					.append($("<div></div>", 
+						{class: "new-high-score high-score-time", text: highScores[difficulty.value]}));
+		}
+		else if (highScores !== null)
+		{
+		    message.append($("<div></div>", 
+						{class: "high-score", text: "High Score:"}))
+					.append($("<div></div>", 
+						{class: "high-score-time", text: highScores[difficulty.value]}));
+		}
 		var wonDialog = new Modal(message, "won");
 		wonDialog.show();
 		$(wonDialog).on("buttonClicked", wonDialog, closeWonDialog);
@@ -128,4 +185,12 @@ function GameManager(canvasElement, clockElement, menuElement)
 		// Repeat at next frame
 		requestAnimationFrame(render);
 	}
+	
+	function supportsLocalStorage() {
+        try {
+            return 'localStorage' in window && window['localStorage'] !== null;
+        } catch (e) {
+            return false;
+        }
+    }
 }

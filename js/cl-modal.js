@@ -35,7 +35,7 @@ function Modal(content)
 		$(dialog).hide();
 		$("body").append(matte);
 		$.get(
-			"img/button.svg", 
+			"img/button.svg?v=1", 
 			function(data) 
 			{
 				button.append(data.documentElement);
@@ -64,20 +64,32 @@ function Modal(content)
 
 	this.show = function(callback)
 	{
-		$(matte).show("fade", 250);
-		$(dialog).show("pulsate", 250, callback);
+		//$(matte).show("fade", 250);
+		//$(dialog).show("pulsate", 250, callback);
+		$(matte).show();
+		$(dialog).show();
+		if (callback && typeof callback === 'function')
+		{
+		    callback();
+		}
 	};
 
 	this.hide = function(callback)
 	{
-		$(matte).hide("fade", 500);
-		$(dialog).hide("pulsate", 500, callback);
+		//$(matte).hide("fade", 500);
+		//$(dialog).hide("pulsate", 500, callback);
+		$(matte).remove();
+		if (callback && typeof callback === 'function')
+		{
+		    callback();
+		}
 	};
 
 	// Private methods
 
 	function window_rescale()
 	{
+	    // Reposition dialog
 		$(dialog).css("top", (window.innerHeight - $(dialog).height()) / 2);
 		$(dialog).css("left", (window.innerWidth - $(dialog).width()) / 2);
 	}

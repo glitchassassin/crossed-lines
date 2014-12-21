@@ -1,0 +1,498 @@
+body {
+	margin: 0;
+	padding: 0;
+	font-family: 'Open Sans' sans-serif;
+	color: #fff;
+	background: url("../img/dialog.svg") no-repeat -9999px -9999px;
+}
+#cl_canvas {
+	background: #000; 
+	margin: 0 auto;
+}
+
+
+
+#pausebutton {
+	border-left: 25px solid rgba(128,128,128,0.5);
+	border-right: 25px solid rgba(128,128,128,0.5);
+	position: absolute;
+	width: 25px;
+	height: 75px;
+	top: 40px;
+	right: 37px;
+}
+#playbutton {
+	display: none;
+	width: 130;
+	height: 130;
+	position: absolute;
+	top: 10px;
+	right: 10px;
+}
+#playarrow {
+	border-top: 50px solid transparent;
+	border-bottom: 50px solid transparent;
+	border-left: 70px solid rgba(128,128,128,0.5);
+	position: absolute;
+	width: 0;
+	height: 0px;
+	top: 15px;
+	right: 20px;
+}
+#title {
+	position: absolute;
+	left: 0;
+	color: #fff;
+	font-size: 100px;
+	line-height: 150px;
+	width: 900px;
+	text-align: center;
+	top: 35;
+	text-shadow: 0px 0px 15px rgba(0, 255, 255, 1);
+}
+#byline {
+	position: absolute;
+	color: #fff;
+	font-size: 30px;
+	line-height: 50px;
+	width: 100%;
+	text-align: center;
+	bottom: 50px;
+}
+#difficulty-slider {
+	position: relative;
+	float: right;
+	height: 280px;
+	font-size: 12pt;
+	margin-top: 22px;
+}
+#difficulty-label {
+	position: absolute;
+	color: #fff;
+	font-size: 50px;
+	line-height: 100px;
+	top: 180px;
+	left: 80px;
+	width: 330px;
+	font-family: 'Open Sans', sans-serif;
+}
+#difficulty-label .header {
+	font-size: 50px;
+	line-height: 100px;
+	width: 100%;
+	display: none;
+}
+#difficulty-label .difficulty {
+	position: relative;
+	float: right;
+	font-size: 30px;
+	line-height: 40px;
+	display: block;
+	height: 47px;
+	width: 260px;
+	text-align: right;
+	text-shadow: 0px 0px 7px rgba(0, 255, 255, 1);
+}
+
+.logo {
+	font-family: 'Futura', sans-serif;
+	font-variant: small-caps;
+	text-shadow: 0px 0px 10px rgba(149, 110, 255, 1);
+}
+
+#won-svg {
+	position: absolute;
+	right: 0;
+}
+.won-play-svg {
+	stroke: rgba(0,200,0,1);
+	fill: rgba(0,255,0,0.3);
+}
+.won-play-svg:hover {
+	fill: rgba(0,255,0,0.4);
+}
+
+
+/* JQueryUI fix */
+
+.ui-slider-vertical {
+	background: #f9f9f9; /* Old browsers */
+	background: -moz-linear-gradient(top, #f9f9f9 0%, #f9f9f9 50%, #eeefff 51%, #eeefff 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f9f9f9), color-stop(50%,#f9f9f9), color-stop(51%,#eeefff), color-stop(100%,#eeefff)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #f9f9f9 0%,#f9f9f9 50%,#eeefff 51%,#eeefff 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #f9f9f9 0%,#f9f9f9 50%,#eeefff 51%,#eeefff 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top, #f9f9f9 0%,#f9f9f9 50%,#eeefff 51%,#eeefff 100%); /* IE10+ */
+	background: linear-gradient(to bottom, #f9f9f9 0%,#f9f9f9 50%,#eeefff 51%,#eeefff 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f9f9f9', endColorstr='#eeefff',GradientType=0 ); /* IE6-9 */
+	box-shadow: 0px 0px 15px rgba(0, 255, 255, 1);
+}
+.ui-slider-handle.ui-state-default, .ui-slider-handle.ui-state-hover {
+	background: #fff;
+}
+
+/* New styles */
+
+.modal-matte {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,0.7);
+}
+.modal-dialog {
+	position: absolute;
+	width: 500px;
+	height: 300px;
+	text-align: center;
+	font-size: 48pt;
+	background-image: url("../img/dialog.svg");
+	background-size: contain;
+}
+.modal-title {
+    padding-top: 14px;
+}
+.won-difficulty {
+    position: absolute;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 47%;
+    color: #fff;
+    top: 153px;
+    left: 208px;
+    font-style: italic;
+}
+.won-difficulty-label {
+    position: absolute;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 37%;
+    color: #fff;
+    top: 106px;
+    left: 201px;
+}
+.won-time {
+    position: absolute;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 73%;
+    color: #fff;
+    top: 135px;
+    left: 37px;
+}
+.won-time-label {
+    position: absolute;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 37%;
+    color: #fff;
+    top: 107px;
+    left: 27px;
+}
+.modal-button {
+	position: absolute;
+	width: 295px;
+	height: 78px;
+	text-align: right;
+	bottom: 0px;
+	right: 0px;
+	cursor: default;
+}
+.modal-button svg {
+	width: 295px;
+	height: 78px;
+}
+.modal-button-label {
+	position: absolute;
+	width: 250px;
+	height: 78px;
+	line-height: 78px;
+	font-size: 60%;
+	right: 0px;
+	bottom: 0;
+}
+.high-score {
+    position: absolute;
+    left: 25px;
+    font-size: 37%;
+    top: 205px;
+}
+
+.high-score-time {
+    position: absolute;
+    top: 232px;
+    left: 37px;
+    font-size: 73%;
+}
+.new-high-score {
+    -webkit-animation: glow-high-score 2s infinite;
+    -moz-animation:    glow-high-score 2s infinite;
+    -o-animation:      glow-high-score 2s infinite;
+    animation:         glow-high-score 2s infinite;
+    font-weight: bold;
+}
+@-webkit-keyframes glow-high-score {
+  0%   { text-shadow: 0px 0px 5px  rgba(0, 255, 0, 1); }
+  50%  { text-shadow: 0px 0px 20px rgba(0, 255, 0, 1); }
+  100% { text-shadow: 0px 0px 5px  rgba(0, 255, 0, 1); }
+}
+@-moz-keyframes glow-high-score {
+  0%   { text-shadow: 0px 0px 5px  rgba(0, 255, 0, 1); }
+  50%  { text-shadow: 0px 0px 20px rgba(0, 255, 0, 1); }
+  100% { text-shadow: 0px 0px 5px  rgba(0, 255, 0, 1); }
+}
+@-o-keyframes glow-high-score {
+  0%   { text-shadow: 0px 0px 5px  rgba(0, 255, 0, 1); }
+  50%  { text-shadow: 0px 0px 20px rgba(0, 255, 0, 1); }
+  100% { text-shadow: 0px 0px 5px  rgba(0, 255, 0, 1); }
+}
+@keyframes glow-high-score {
+  0%   { text-shadow: 0px 0px 5px  rgba(0, 255, 0, 1); }
+  50%  { text-shadow: 0px 0px 20px rgba(0, 255, 0, 1); }
+  100% { text-shadow: 0px 0px 5px  rgba(0, 255, 0, 1); }
+}
+
+
+.menu-matte {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,0.7);
+	top: 0;
+	left: 0;
+}
+#clock {
+	position: fixed;
+	width: 150;
+	height: 150;
+	top: -1;
+	right: 0;
+	cursor: pointer;
+}
+#menu {
+	position: fixed;
+	top: 0;
+	right: 0;
+	cursor: default;
+	padding: 0px;
+	width: 1000px;
+	height: 620px;
+	background: url(../img/ui.svg);
+}
+#menu svg {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+#restartbutton {
+	position: absolute;
+	width: 270px;
+	font-size: 50px;
+	line-height: 75px;
+	text-align: center;
+	bottom: 280px;
+	right: 150px;
+	border: 3px solid rgba(0,0,200,1);
+	background-color: rgba(0,0,255,0.3);
+}
+#restartbutton:hover {
+	background-color: rgba(0,0,255,0.4);
+}
+#continuebutton {
+	position: absolute;
+	width: 270px;
+	font-size: 50px;
+	line-height: 75px;
+	text-align: center;
+	bottom: 150px;
+	right: 150px;
+	border: 3px solid rgba(0,200,0,1);
+	background-color: rgba(0,255,0,0.3);
+}
+#continuebutton:hover {
+	background-color: rgba(0,255,0,0.4);
+}
+
+#menuflag {
+	position: fixed;
+	right: 50px;
+	width: 50px;
+	color: white;
+	top: 90px;
+	font-style: italic;
+	cursor: default;
+}
+
+
+
+
+@media screen and (max-width: 1000px) and (orientation: landscape) {
+    #menu {
+    	width: 480px;
+    	height: 320px;
+    	background: url(../img/menu_mobile_landscape.svg);
+    }
+    #clock {
+        width: 100;
+        height: 100;
+    }
+    #continuebutton {
+    	width: 123px;
+        font-size: 25px;
+        line-height: 34px;
+        bottom: 90px;
+        right: 110px;
+    }
+    #restartbutton {
+        width: 123px;
+        font-size: 23px;
+        line-height: 34px;
+        bottom: 145px;
+        right: 110px;
+    }
+    #difficulty-slider {
+        height: 215px;
+        margin-top: 20px;
+    }
+    #difficulty-label {
+        top: initial;
+        bottom: 32px;
+        left: 0px;
+        width: 183px;
+        height: 252px;
+    }
+    #difficulty-label .difficulty {
+        font-size: 15px;
+        width: 130px;
+        line-height: 36px;
+        height: initial;
+    }
+    #title {
+        left: 190;
+        font-size: 40px;
+        line-height: 40px;
+        width: 200px;
+        top: 35;
+    }
+    #byline {
+        font-size: 15px;
+        line-height: 20px;
+        width: 250px;
+        bottom: 50px;
+        right: 30px;
+    }
+    #menuflag {
+        font-size: 12px;
+        right: 18px;
+        width: 50px;
+        top: 58px;
+    }
+}
+
+@media screen and (max-width: 1000px) and (orientation: portrait) {
+    #menu {
+    	width: 320px;
+    	height: 480px;
+    	background: url(../img/menu_mobile_portrait.svg);
+    }
+    #clock {
+        width: 100;
+        height: 100;
+    }
+    #continuebutton {
+    	width: 123px;
+        font-size: 25px;
+        line-height: 34px;
+        bottom: 215px;
+        right: 20px;
+    }
+    #restartbutton {
+        width: 123px;
+        font-size: 23px;
+        line-height: 34px;
+        bottom: 155px;
+        right: 20px;
+    }
+    #difficulty-slider {
+        height: 215px;
+        margin-top: 20px;
+    }
+    #difficulty-label {
+        top: 135;
+        left: 5px;
+        width: 153px;
+        height: 252px;
+    }
+    #difficulty-label .difficulty {
+        font-size: 15px;
+        width: 130px;
+        line-height: 36px;
+        height: initial;
+    }
+    #title {
+        width: 200px;
+        font-size: 50px;
+        line-height: 50px;
+        left: 15px;
+        top: 20px;
+    }
+    #byline {
+        font-size: 18px;
+        bottom: 50px;
+    }
+    #menuflag {
+        font-size: 12px;
+        right: 18px;
+        width: 50px;
+        top: 58px;
+    }
+}
+
+@media screen and (max-width: 1000px){
+	.modal-dialog {
+		width: 300px;
+		height: 180px;
+		font-size: 28pt;
+	}
+	.modal-title {
+	    padding-top: 9px;
+	}
+	.modal-button {
+		width: 180px;
+		height: 45px;
+		bottom: 1px;
+		right: 0px;
+		cursor: default;
+	}
+	.won-difficulty {
+        top: 93px;
+        left: 125px;
+	}
+	.won-difficulty-label {
+		top: 64px;
+		left: 120px;
+	}
+	.won-time {
+        left: 23px;
+        top: 82px;
+	}
+	.won-time-label {
+        top: 64px;
+        left: 16px;
+	}
+	.high-score {
+        left: 15px;
+        top: 123px;
+    }
+    .high-score-time {
+        top: 140px;
+        left: 23px;
+    }
+	.modal-button svg {
+		width: 184px;
+		height: 47px;
+	}
+	.modal-button-label {
+		width: 150px;
+		height: 48px;
+		line-height: 48px;
+		right: 0px;
+		bottom: 0;
+	}
+}
