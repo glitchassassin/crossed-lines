@@ -13,6 +13,17 @@ function GameManager(canvasElement, clockElement, menuElement)
 		{
 			return true;
 		}
+
+		// Nodes should also be prevented from spawning too close to the top 
+		// or sides of the screen (for mobile browsers, which may have 
+		// gestures around those areas).
+		if (node.x < 20 || node.x > window.innerWidth - 20 || 
+			node.y < 20 || node.y > window.innerHeight - 20)
+		{
+			return true
+		}
+
+		// Otherwise they're good!
 		return false;
 	});
 	var clock = new Clock(clockElement);

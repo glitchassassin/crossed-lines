@@ -301,7 +301,8 @@ function GameBoard(canvas, exclude)
     			var dx = x - this.nodes[i].x;
     			var dy = y - this.nodes[i].y;
     			// ...and check if clicking within node's radius:
-    			if (Math.sqrt((dx*dx)+(dy*dy)) < this.nodes[i].r) { // Pythagorean theorem - a^2 + b^2 = c^2
+    			// (Note the clickable region is actually 1.5 times the radius)
+    			if (Math.sqrt((dx*dx)+(dy*dy)) < (this.nodes[i].r * 1.5)) { // Pythagorean theorem - a^2 + b^2 = c^2
     				// We have a node!
     				return this.nodes[i];
     			}
