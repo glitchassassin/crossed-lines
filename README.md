@@ -5,7 +5,7 @@ Glitch Assassin Games
 
 Crossed Lines is a simple puzzle game and experiment in HTML5/Javascript game programming.
 
-Check out the demo here: [Crossed Lines](http://crossedlines.glitchassassin.com/)
+Check out the demo here: [Crossed Lines](https://glitchassassin.github.io/crossed-lines/)
 
 Version 1.2 changelog:
 
